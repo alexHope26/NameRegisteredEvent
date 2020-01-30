@@ -13,8 +13,9 @@ class App extends Component {
     this.in3 = new In3Client({
       proof: 'none',
       signatureCount: 1,
-      requestCount: 2,
-      chainId: 'mainnet' //connection with the mainnet, incube
+      requestCount: 1,
+      chainId: 'mainnet',//connection with the mainnet, incube 
+    
     })
     //Address ENS in mainnet
     this.ADDRESS = "0xf0ad5cad05e10572efceb849f6ff0c68f9700455"
@@ -38,16 +39,26 @@ class App extends Component {
   //This function obtain the actual block and after this obtain Logs for the NameRegistered Event in ENS 
   showNameRegisteredEvents = async () => {
     let actualBlock;
+    let forBlockInt;
     let nameresult = [];
     const AVERAGEBYDAY = 6433; //Average to block by day
+    
 
     //Get the current block number.
-    await this.in3.eth.getBlockByNumber('latest', false).then(value => {
-      actualBlock = value.number;
+    await this.in3.eth.getBlockByNumber('latest').then(value => {
+      actualBlock = parseInt(value.number,16);
+     // forBlockInt = actualBlock - (AVERAGEBYDAY * this.state.filterDay); Don't work with new limits for eth_Logs
+    if (this.state.filterDay == 2)
+      forBlockInt = actualBlock - 10000;
+    else
+      forBlockInt = actualBlock - AVERAGEBYDAY;
+    
     });
+
     //This function in in3 is similar to getPastEvent in web3 and with this obtain information about the event in a range.
-    await this.contrato.events.NameRegistered.getLogs({ fromBlock: actualBlock - (AVERAGEBYDAY * this.state.filterDay), toBlock: "latest" }).then(events => {
+    await this.contrato.events.NameRegistered.getLogs({ fromBlock:forBlockInt-1087177 ,toBlock:actualBlock-1087177}).then(events => {
       nameresult = events;  //store log event in local variable
+      console.log("nameResult: "+nameresult);
     });
     //Update State variable
     this.setState({ nameRegisteredResult: nameresult });
